@@ -1,4 +1,4 @@
-import { ActivityIndicator, View } from "react-native";
+import { Text, View } from "react-native";
 
 export default function Index() {
   return (
@@ -7,9 +7,12 @@ export default function Index() {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
+        backgroundColor: "#2a2a2a"
       }}
     >
-      <ActivityIndicator size="large" color="#0000ff" />
+      <Text style={{
+        color: "white"
+      }}>Main</Text>
     </View>
   );
 }
