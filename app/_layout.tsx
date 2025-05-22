@@ -7,7 +7,7 @@ SplashScreen.preventAutoHideAsync();
 
 
 export default function RootLayout() {
-  const [isLogin, setLogin] = useState(false);
+  const [isLogin, setLogin] = useState(true);
 
   useEffect(() => {
     SplashScreen.hideAsync()
@@ -19,13 +19,16 @@ export default function RootLayout() {
     <StatusBar style="light" />
       <Stack screenOptions={{headerShown: false}}>
         <Stack.Screen name="(main)" options={{ headerShown: false, headerStyle: {
-          backgroundColor: "#2a2a2a"
+          backgroundColor: process.env.EXPO_PUBLIC_BG_COLOR
+        } }} />
+        <Stack.Screen name="(auth)" options={{ headerShown: false, headerStyle: {
+          backgroundColor: process.env.EXPO_PUBLIC_BG_COLOR
         } }} />
       </Stack>
       {isLogin ? (
-        <Redirect href={"/(auth)"} />
-      ) : (
         <Redirect href={"/(main)"} />
+      ) : (
+        <Redirect href={"/(auth)"} />
       )}
     </>
   );

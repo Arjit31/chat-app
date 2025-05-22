@@ -1,16 +1,9 @@
-import { Text, View } from "react-native";
+import { Card } from "@/components/Card";
+import { Text } from "react-native";
 
 export default function Index() {
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#2a2a2a",
-        borderColor: "#2a2a2a",
-      }}
-    >
+    <Card>
       <Text
         style={{
           color: "white",
@@ -18,6 +11,6 @@ export default function Index() {
       >
         Hangout
       </Text>
-    </View>
+    </Card>
   );
 }
