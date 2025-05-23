@@ -1,3 +1,4 @@
+import { Audio } from "expo-av";
 import { useEffect, useRef, useState } from "react";
 import { Animated, StyleSheet, TextInput, View } from "react-native";
 import { Send } from "./Button";
@@ -16,14 +17,16 @@ function interpolateColor(
   return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
 }
 
+
 export function TextBox() {
   const [text, setText] = useState("");
   const [height, setHeight] = useState(0);
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
   const inputRef = useRef(null);
 
   const maxChars = 200;
-  const startColor = [242, 237, 246]; //rgb(165, 114, 205)
-  const endColor = [240, 209, 209]; //rgb(240, 209, 209)
+  const startColor = [242, 237, 246]; //rgb(242, 237, 246)
+  const endColor = [181, 168, 168]; //rgb(181, 168, 168)
 
   const ratio = Math.min(text.length / maxChars, 1);
   const interpolatedBorderColor = interpolateColor(startColor, endColor, ratio);
@@ -34,6 +37,26 @@ export function TextBox() {
   );
 
   const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const playTypingSound = async () => {
+    if (sound) {
+      await sound.replayAsync(); // replayAsync lets you play sound multiple times quickly
+    }
+  };
+
+  useEffect(() => {
+    async function loadSound() {
+      const { sound } = await Audio.Sound.createAsync(
+        require("../assets/sounds/soft-click.mp3")
+      );
+      setSound(sound);
+    }
+    loadSound();
+
+    return () => {
+      sound?.unloadAsync();
+    };
+  }, []);
 
   useEffect(() => {
     if (text.length === 0) return;
@@ -63,6 +86,7 @@ export function TextBox() {
           // ref={inputRef}
           multiline
           onChangeText={setText}
+          onKeyPress={playTypingSound}
           // value={text}
           placeholder="Type something..."
           placeholderTextColor="#999"

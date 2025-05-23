@@ -1,10 +1,8 @@
 import React, { JSX } from "react";
 import {
-  Keyboard,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
-  TouchableWithoutFeedback
+  SafeAreaView
 } from "react-native";
 // import { KeyboardEvent as RNKeyboardEvent } from "react-native";
 import { useHeaderHeight } from "@react-navigation/elements";
@@ -21,7 +19,7 @@ export function Card({ children }: WrapperProps): JSX.Element {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={headerHeight}
     >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      {/* <TouchableWithoutFeedback onPress={Keyboard.dismiss}> */}
         <SafeAreaView
           style={{
             height: "100%",
@@ -36,7 +34,7 @@ export function Card({ children }: WrapperProps): JSX.Element {
         >
           {children}
         </SafeAreaView>
-      </TouchableWithoutFeedback>
+      {/* </TouchableWithoutFeedback> */}
     </KeyboardAvoidingView>
   );
 }
