@@ -1,6 +1,6 @@
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { TouchableOpacity } from "react-native";
+import { GestureResponderEvent, TouchableOpacity } from "react-native";
 
 export function Logout(){
     return (
@@ -10,10 +10,10 @@ export function Logout(){
     )
 }
 
-export function Send(){
+export function Send({onPress} : {onPress: (event: GestureResponderEvent) => void}){
     return (
         <TouchableOpacity>
-            <Ionicons name="send" size={30} color={process.env.EXPO_PUBLIC_FG1_COLOR} />
+            <Ionicons name="send" size={30} color={process.env.EXPO_PUBLIC_FG1_COLOR} onPress={onPress}/>
         </TouchableOpacity>
     )
 }

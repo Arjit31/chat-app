@@ -1,16 +1,12 @@
 import { Card } from "@/components/Card";
-import { Text } from "react-native";
+import { Chats } from "@/components/Chats";
+import { TextBox } from "@/components/Textbox";
 
 export default function Index() {
   return (
     <Card>
-      <Text
-        style={{
-          color: "white",
-        }}
-      >
-        Hangout
-      </Text>
+      <Chats type="Reveal" />
+      <TextBox type="Reveal" />
     </Card>
   );
 }

@@ -1,3 +1,4 @@
+import { getSocket } from "@/lib/socket";
 import { Audio } from "expo-av";
 import { useEffect, useRef, useState } from "react";
 import { Animated, StyleSheet, TextInput, View } from "react-native";
@@ -17,13 +18,23 @@ function interpolateColor(
   return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
 }
 
-
-export function TextBox() {
+export function TextBox({ type }: { type: "Anonymous" | "Reveal" }) {
   const [text, setText] = useState("");
   const [height, setHeight] = useState(0);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
-  const inputRef = useRef(null);
+  const [sendSound, setSendSound] = useState<Audio.Sound | null>(null);
+  // const inputRef = useRef(null);
+  const websocket = useRef<WebSocket>(null);
 
+  function createString() {
+    const obj = {
+      type: type,
+      text: text,
+      userId: "4d5642f0-033a-4b58-83cc-ba99eea72ddf",
+    };
+    const convert = JSON.stringify(obj);
+    return convert;
+  }
   const maxChars = 200;
   const startColor = [242, 237, 246]; //rgb(242, 237, 246)
   const endColor = [181, 168, 168]; //rgb(181, 168, 168)
@@ -43,18 +54,29 @@ export function TextBox() {
       await sound.replayAsync(); // replayAsync lets you play sound multiple times quickly
     }
   };
+  
+  const playSendSound = async () => {
+    if (sendSound) {
+      await sendSound.replayAsync(); // replayAsync lets you play sound multiple times quickly
+    }
+  };
 
   useEffect(() => {
     async function loadSound() {
       const { sound } = await Audio.Sound.createAsync(
         require("../assets/sounds/soft-click.mp3")
       );
+      const sendClick = await Audio.Sound.createAsync(
+        require("../assets/sounds/poit-94911.mp3")
+      )
       setSound(sound);
+      setSendSound(sendClick.sound)
     }
     loadSound();
-
+    websocket.current = getSocket();
     return () => {
       sound?.unloadAsync();
+      sendSound?.unloadAsync()
     };
   }, []);
 
@@ -87,7 +109,7 @@ export function TextBox() {
           multiline
           onChangeText={setText}
           onKeyPress={playTypingSound}
-          // value={text}
+          value={text}
           placeholder="Type something..."
           placeholderTextColor="#999"
           onContentSizeChange={(e) => {
@@ -108,7 +130,17 @@ export function TextBox() {
         />
       </Animated.View>
       <View style={styles.sendContainer}>
-        <Send></Send>
+        <Send
+          onPress={() => {
+            try {
+              websocket.current?.send(createString());
+              setText("")
+              playSendSound()
+            } catch (error) {
+              
+            }
+          }}
+        ></Send>
       </View>
     </View>
   );

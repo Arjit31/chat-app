@@ -1,7 +1,15 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
 
-export function ChatBubble({ message, isSent } : {message: string, isSent: boolean}){
+export function ChatBubble({
+  message,
+  isSent,
+  type,
+}: {
+  message: string;
+  isSent: boolean;
+  type: "Anonymous" | "Reveal";
+}) {
   return (
     <View
       style={[
@@ -9,27 +17,34 @@ export function ChatBubble({ message, isSent } : {message: string, isSent: boole
         isSent ? styles.sentContainer : styles.receivedContainer,
       ]}
     >
-      <View style={[styles.bubble, isSent ? styles.sentBubble : styles.receivedBubble]}>
-        <Text style={isSent ? styles.sentText : styles.receivedText}>{message}</Text>
+      <View
+        style={[
+          styles.bubble,
+          isSent ? styles.sentBubble : styles.receivedBubble,
+        ]}
+      >
+        <Text style={isSent ? styles.sentText : styles.receivedText}>
+          {message}
+        </Text>
       </View>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   bubbleContainer: {
     paddingHorizontal: 10,
     marginVertical: 5,
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   sentContainer: {
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   receivedContainer: {
-    justifyContent: 'flex-start',
+    justifyContent: "flex-start",
   },
   bubble: {
-    maxWidth: '75%',
+    maxWidth: "75%",
     borderRadius: 16,
     padding: 10,
   },
@@ -38,14 +53,14 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 0,
   },
   receivedBubble: {
-    backgroundColor: '#E5E5EA', // Grey
+    backgroundColor: "#E5E5EA", // Grey
     borderTopLeftRadius: 0,
   },
   sentText: {
-    color: '#ffffff',
+    color: "#ffffff",
   },
   receivedText: {
-    color: '#000000',
+    color: "#000000",
   },
 });
 
