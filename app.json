@@ -9,14 +9,16 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.chatapp"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.anonymous.chatapp"
     },
     "web": {
       "bundler": "metro",
@@ -39,22 +41,8 @@
       "typedRoutes": true
     },
     "androidNavigationBar": {
-     /*
-        Determines to show or hide bottom navigation bar.
-        "true" to show, "false" to hide.
-        If set to false, status bar will also be hide. As it's a general rule to hide both status bar and navigation bar on Android developer official docs.
-      */
-      /*
-        Configure the navigation bar icons to have light or dark color.
-        Valid values: "light-content", "dark-content".
-      */
       "visible": "sticky-immersive",
       "barStyle": "dark-content",
-
-      /*
-        Configuration for android navigation bar.
-        6 character long hex color string, eg: "#000000"
-      */
       "backgroundColor": "#2a2a2a"
     }
   }

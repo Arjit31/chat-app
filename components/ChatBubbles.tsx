@@ -5,10 +5,12 @@ export function ChatBubble({
   message,
   isSent,
   type,
+  username,
 }: {
   message: string;
   isSent: boolean;
   type: "Anonymous" | "Reveal";
+  username: string;
 }) {
   return (
     <View
@@ -23,6 +25,7 @@ export function ChatBubble({
           isSent ? styles.sentBubble : styles.receivedBubble,
         ]}
       >
+        {type === "Reveal" && !isSent ? <Text style={styles.revealText}>{username}</Text> : <></>}
         <Text style={isSent ? styles.sentText : styles.receivedText}>
           {message}
         </Text>
@@ -62,6 +65,9 @@ const styles = StyleSheet.create({
   receivedText: {
     color: "#000000",
   },
+  revealText: {
+    color: "#093b6d" // #093b6d 
+  }
 });
 
 export default ChatBubble;

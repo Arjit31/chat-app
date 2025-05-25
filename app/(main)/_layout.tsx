@@ -3,6 +3,7 @@ import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { PlatformPressable } from "@react-navigation/elements";
 import { Tabs } from "expo-router";
+import React from "react";
 import { View } from "react-native";
 
 export default function MainLayout() {
@@ -14,7 +15,7 @@ export default function MainLayout() {
         tabBarActiveBackgroundColor: process.env.EXPO_PUBLIC_BG_COLOR,
         headerStyle: {
           backgroundColor: process.env.EXPO_PUBLIC_BG_COLOR,
-          borderBottomColor: "#a079c6",
+          borderBottomColor: process.env.EXPO_PUBLIC_FG1_COLOR,
           elevation: 0,
           borderBottomWidth: 2,
         },
@@ -38,14 +39,17 @@ export default function MainLayout() {
           // overflow: "hidden",
         },
         tabBarStyle: {
-          borderColor: "#a079c6",
+          borderColor: process.env.EXPO_PUBLIC_FG1_COLOR,
           borderTopWidth: 2,
           elevation: 0,
           height: 100,
           overflow: "hidden",
           // paddingBottom: 10,
         },
-        headerTintColor: "#a079c6",
+        headerTintColor: process.env.EXPO_PUBLIC_FG1_COLOR,
+        headerTitleStyle: {
+          fontSize: 25
+        },
         headerRight(props) {
           return (
             <View style={{ padding: 10 }}>

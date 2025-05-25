@@ -15,6 +15,7 @@ type messageType = {
   isSent: boolean;
   createdAt: string;
   serialNo: number;
+  username: string;
 };
 
 export function Chats({ type }: { type: "Anonymous" | "Reveal" }) {
@@ -28,6 +29,7 @@ export function Chats({ type }: { type: "Anonymous" | "Reveal" }) {
       isSent: false,
       createdAt: "2025-04-23T08:30:15.366Z",
       serialNo: 0,
+      username: "Rahul",
     },
   ]);
 
@@ -103,6 +105,7 @@ export function Chats({ type }: { type: "Anonymous" | "Reveal" }) {
           text: obj.text,
           createdAt: obj.createdAt,
           isSent: obj.isSent,
+          username: obj.username,
         };
         // console.log(listItem)
 
@@ -133,7 +136,12 @@ export function Chats({ type }: { type: "Anonymous" | "Reveal" }) {
         data={messages}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <ChatBubble message={item.text} isSent={item.isSent} type={type}/>
+          <ChatBubble
+            message={item.text}
+            isSent={item.isSent}
+            username={item.username}
+            type={type}
+          />
         )}
         // contentContainerStyle={{ padding: 10 }}
         onContentSizeChange={() =>
