@@ -6,8 +6,8 @@ export default function AuthLayout() {
     <Stack
       screenOptions={{
         headerStyle: {
-          backgroundColor: process.env.EXPO_PUBLIC_BG_COLOR,
-          borderBottomColor: "#a079c6",
+          backgroundColor: process.env.EXPO_PUBLIC_BG_COLOR || "#121212", // dark grey fallback
+          borderBottomColor: process.env.EXPO_PUBLIC_FG1_COLOR, // purple-ish border
           borderBottomWidth: 2,
           elevation: 0,
         } as any,
@@ -16,8 +16,9 @@ export default function AuthLayout() {
           color: "#a079c6",
         },
         contentStyle: {
-          backgroundColor: process.env.EXPO_PUBLIC_BG_COLOR,
+          backgroundColor: process.env.EXPO_PUBLIC_BG_COLOR || "#121212",
         },
+        headerShown: false
       }}
     />
   );

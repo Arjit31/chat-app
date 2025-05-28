@@ -44,6 +44,12 @@
       "visible": "sticky-immersive",
       "barStyle": "dark-content",
       "backgroundColor": "#2a2a2a"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "707e90ae-596c-468c-9d1a-d141d4a4e731"
+      }
     }
   }
 }

@@ -1,42 +1,46 @@
-// import * as Google from "expo-auth-session/providers/google";
 import { useRouter } from "expo-router";
-import * as WebBrowser from "expo-web-browser";
-import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import ButtonPrimary from "../../components/Button";
+import InputField from "../../components/InputField";
 
-WebBrowser.maybeCompleteAuthSession();
-
-export default function Login() {
+export default function Signin() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const router = useRouter();
 
-  // const [request, response, promptAsync] = Google.useAuthRequest({
-  //   expoClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
-  //   scopes: ["profile", "email"],
-  // });
-
-  // useEffect(() => {
-  //   if (response?.type === "success") {
-  //     const { authentication } = response;
-  //     // Ideally validate the token on backend here
-  //     router.replace("/"); // redirect to MainLayout
-  //   }
-  // }, [response]);
+  const onSubmit = () => {
+    alert(`Signing in as ${username}`);
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome to Drop It</Text>
-      {/* <Image
-        source={require("@/assets/login-art.png")}
-        style={styles.image}
-        resizeMode="contain"
-      /> */}
-      <Pressable
-        style={styles.googleButton}
-        // onPress={() => promptAsync()}
-        // disabled={!request}
+      <Text style={styles.title}>Sign In</Text>
+
+      <InputField
+        placeholder="Username"
+        value={username}
+        onChangeText={setUsername}
+        autoCapitalize="none"
+      />
+      <InputField
+        placeholder="Password"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
+      <ButtonPrimary
+        title="Submit"
+        onPress={onSubmit}
+        disabled={!username.trim() || !password.trim()}
+      />
+
+      <Text
+        style={styles.link}
+        onPress={() => router.push("./signup")}
       >
-        <Text style={styles.googleButtonText}>Sign in with Google</Text>
-      </Pressable>
+        Don't have an account? Sign Up
+      </Text>
     </View>
   );
 }
@@ -44,32 +48,22 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: process.env.EXPO_PUBLIC_BG_COLOR,
+    backgroundColor: process.env.EXPO_PUBLIC_BG_COLOR || "#121212",
+    paddingHorizontal: 30,
     justifyContent: "center",
-    alignItems: "center",
-    padding: 24,
   },
   title: {
     fontSize: 28,
-    color: "#a079c6",
-    marginBottom: 40,
-    fontWeight: "600",
+    fontWeight: "bold",
+    color: process.env.EXPO_PUBLIC_PRIMARY_COLOR || "#a079c6",
+    marginBottom: 30,
+    textAlign: "center",
   },
-  image: {
-    width: "80%",
-    height: 200,
-    marginBottom: 40,
-  },
-  googleButton: {
-    backgroundColor: "#a079c6",
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 10,
-    elevation: 3,
-  },
-  googleButtonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "500",
+  link: {
+    marginTop: 20,
+    color: process.env.EXPO_PUBLIC_PRIMARY_COLOR || "#a079c6",
+    textAlign: "center",
+    textDecorationLine: "underline",
+    fontSize: 16,
   },
 });
