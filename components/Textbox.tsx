@@ -1,4 +1,5 @@
 import { getSocket } from "@/lib/socket";
+import { useUserStore } from "@/store/userStore";
 import { Audio } from "expo-av";
 import { useEffect, useRef, useState } from "react";
 import { Animated, StyleSheet, TextInput, View } from "react-native";
@@ -19,6 +20,7 @@ function interpolateColor(
 }
 
 export function TextBox({ type }: { type: "Anonymous" | "Reveal" }) {
+  const {userId, setUserId} = useUserStore();
   const [text, setText] = useState("");
   const [height, setHeight] = useState(0);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
@@ -26,13 +28,15 @@ export function TextBox({ type }: { type: "Anonymous" | "Reveal" }) {
   // const inputRef = useRef(null);
   const websocket = useRef<WebSocket>(null);
 
-  function createString() {
+  async function createString() {
     const obj = {
+      category: "broadcast",
       type: type,
       text: text,
-      userId: "4d5642f0-033a-4b58-83cc-ba99eea72ddf",
+      userId: userId,
     };
     const convert = JSON.stringify(obj);
+    console.log(convert);
     return convert;
   }
   const maxChars = 200;
@@ -51,13 +55,13 @@ export function TextBox({ type }: { type: "Anonymous" | "Reveal" }) {
 
   const playTypingSound = async () => {
     if (sound) {
-      await sound.replayAsync(); // replayAsync lets you play sound multiple times quickly
+      await sound.replayAsync();
     }
   };
   
   const playSendSound = async () => {
     if (sendSound) {
-      await sendSound.replayAsync(); // replayAsync lets you play sound multiple times quickly
+      await sendSound.replayAsync();
     }
   };
 
@@ -72,8 +76,11 @@ export function TextBox({ type }: { type: "Anonymous" | "Reveal" }) {
       setSound(sound);
       setSendSound(sendClick.sound)
     }
+    async function setWebSocket(){
+      websocket.current = await getSocket();
+    }
     loadSound();
-    websocket.current = getSocket();
+    setWebSocket();
     return () => {
       sound?.unloadAsync();
       sendSound?.unloadAsync()
@@ -129,11 +136,14 @@ export function TextBox({ type }: { type: "Anonymous" | "Reveal" }) {
           ]}
         />
       </Animated.View>
-      <View style={styles.sendContainer}>
         <Send
-          onPress={() => {
+          onPress={async () => {
             try {
-              websocket.current?.send(createString());
+              if(!websocket.current){
+                console.log("web socket not Initialized")
+                websocket.current = await getSocket()
+              }
+              websocket.current?.send(await createString());
               setText("")
               playSendSound()
             } catch (error) {
@@ -141,14 +151,10 @@ export function TextBox({ type }: { type: "Anonymous" | "Reveal" }) {
             }
           }}
         ></Send>
-      </View>
     </View>
   );
 }
 const styles = StyleSheet.create({
-  sendContainer: {
-    padding: 8,
-  },
   inputWrapper: {
     width: "95%",
     paddingVertical: 20,

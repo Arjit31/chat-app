@@ -12,7 +12,7 @@ export function Logout(){
 
 export function Send({onPress} : {onPress: (event: GestureResponderEvent) => void}){
     return (
-        <TouchableOpacity>
+        <TouchableOpacity style = {styles.sendBackground}>
             <Ionicons name="send" size={30} color={process.env.EXPO_PUBLIC_FG1_COLOR} onPress={onPress}/>
         </TouchableOpacity>
     )
@@ -54,4 +54,9 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16,
   },
+  sendBackground: {
+    // backgroundColor: process.env.EXPO_PUBLIC_FG1_COLOR,
+    borderRadius: 10,
+    padding: 6
+  }
 });

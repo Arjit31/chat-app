@@ -1,3 +1,6 @@
+import { signin } from "@/lib/authentication";
+import { useAuthStore } from "@/store/authStore";
+import { useUserStore } from "@/store/userStore";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -5,13 +8,19 @@ import ButtonPrimary from "../../components/Button";
 import InputField from "../../components/InputField";
 
 export default function Signin() {
+  const { isLogin, setLogin } = useAuthStore();
+    const {userId, setUserId} = useUserStore();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [disabled, setDisabled] = useState(false);
   const router = useRouter();
 
-  const onSubmit = () => {
-    alert(`Signing in as ${username}`);
-  };
+  async function onSubmit() {
+    setDisabled(true);
+    await signin({ username, password, setLogin, setUserId });
+    router.replace("./");
+    setDisabled(false);
+  }
 
   return (
     <View style={styles.container}>
@@ -32,13 +41,10 @@ export default function Signin() {
       <ButtonPrimary
         title="Submit"
         onPress={onSubmit}
-        disabled={!username.trim() || !password.trim()}
+        disabled={!username.trim() || !password.trim() || disabled}
       />
 
-      <Text
-        style={styles.link}
-        onPress={() => router.push("./signup")}
-      >
+      <Text style={styles.link} onPress={() => router.push("./signup")}>
         Don't have an account? Sign Up
       </Text>
     </View>

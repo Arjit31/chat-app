@@ -1,12 +1,18 @@
 import { debounce } from "@/lib/debounce";
+import { refreshAccessToken } from "@/lib/refreshToken";
+// import { setLoginStatus } from "@/lib/setLoginStatus";
 import { getSocket } from "@/lib/socket";
+import { useAuthStore } from "@/store/authStore";
+import { useUserStore } from "@/store/userStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import axios from "axios";
+// import * as SecureStore from "expo-secure-store";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FlatList as FlatListType } from "react-native";
 import { FlatList, View } from "react-native";
 import ChatBubble from "./ChatBubbles";
+
 
 type messageType = {
   id: string;
@@ -19,8 +25,10 @@ type messageType = {
 };
 
 export function Chats({ type }: { type: "Anonymous" | "Reveal" }) {
+  const {isLogin, setLogin} = useAuthStore();
   const flatListRef = useRef<FlatListType<any>>(null);
   const websocket = useRef<WebSocket>(null);
+    const {userId, setUserId} = useUserStore();
   const [messages, setMessages] = useState<messageType[]>([
     {
       id: "asdasd1",
@@ -35,7 +43,7 @@ export function Chats({ type }: { type: "Anonymous" | "Reveal" }) {
 
   const saveMessagesDebounced = useRef(
     debounce((msgs: messageType[]) => {
-      AsyncStorage.setItem("@messages" + type, JSON.stringify(msgs));
+      AsyncStorage.setItem("@messages:" + type + ":" + userId, JSON.stringify(msgs));
     }, 500)
   ).current;
 
@@ -60,7 +68,7 @@ export function Chats({ type }: { type: "Anonymous" | "Reveal" }) {
   async function fetchMessages() {
     try {
       let lastNo = 0;
-      const storedMessages = await AsyncStorage.getItem("@messages" + type);
+      const storedMessages = await AsyncStorage.getItem("@messages:" + type + ":" + userId);
       if (storedMessages !== null) {
         const parsed: messageType[] = JSON.parse(storedMessages);
         setMessages(parsed);
@@ -70,14 +78,18 @@ export function Chats({ type }: { type: "Anonymous" | "Reveal" }) {
           messages[0].serialNo
         );
       }
+      const accessToken = await AsyncStorage.getItem("@token:accessToken");
       const res = await axios.get(
-        process.env.EXPO_PUBLIC_BACKEND_URL + "/fetch-broadcast",
+        process.env.EXPO_PUBLIC_BACKEND_URL + "/api/v1/broadcast/fetch-broadcast",
         {
           params: {
             lastNo: lastNo,
             type: type,
             userId: "4d5642f0-033a-4b58-83cc-ba99eea72ddf",
           },
+          headers: {
+            Authorization: accessToken
+          }
         }
       );
 
@@ -87,12 +99,16 @@ export function Chats({ type }: { type: "Anonymous" | "Reveal" }) {
 
       addNewItem(fetchedMessages);
     } catch (error) {
-      console.log(error);
+      const flag = await refreshAccessToken();
+      if(!flag){
+        setLogin(false);
+      }
+      console.log("fetch error:", error);
     }
   }
 
-  function setWebSocket() {
-    websocket.current = getSocket();
+  async function setWebSocket() {
+    websocket.current = await getSocket();
     websocket.current.onmessage = (event) => {
       // console.log("Received: " + event.data);
       const obj = JSON.parse(event.data);
@@ -115,13 +131,18 @@ export function Chats({ type }: { type: "Anonymous" | "Reveal" }) {
   }
 
   useFocusEffect(
+    
     useCallback(() => {
       async function onMountEvents() {
         await fetchMessages();
-        setWebSocket();
+        await setWebSocket();
+        // if(type === "Reveal"){
+        //   await SecureStore.deleteItemAsync("refreshToken")
+        //   await setLoginStatus(false, setLogin, setUserId);
+        // }
       }
-      onMountEvents();
-    }, [])
+      if(isLogin) onMountEvents();
+    }, [isLogin])
   );
 
   useEffect(() => {
@@ -141,6 +162,7 @@ export function Chats({ type }: { type: "Anonymous" | "Reveal" }) {
             isSent={item.isSent}
             username={item.username}
             type={type}
+            key={item.id}
           />
         )}
         // contentContainerStyle={{ padding: 10 }}
