@@ -48,7 +48,7 @@ export default function MainLayout() {
         },
         headerTintColor: process.env.EXPO_PUBLIC_FG1_COLOR,
         headerTitleStyle: {
-          fontSize: 25
+          fontSize: 25,
         },
         headerRight(props) {
           return (
@@ -96,6 +96,13 @@ export default function MainLayout() {
               color={color}
             />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="userChat/[id]"
+        options={{
+          href: null, // 👈 Hides it from the tab bar
+          // headerShown: false, // optional — hide header if needed
         }}
       />
     </Tabs>

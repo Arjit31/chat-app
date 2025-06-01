@@ -11,9 +11,8 @@ async function onConnectionMessage(){
   return JSON.stringify(sendObj);
 }
 
-export async function getSocket(){
-  const loginStatus = await AsyncStorage.getItem("socketReady");
-  if (!socket && loginStatus == "true") {
+export async function getSocket(isLogin: boolean){
+  if (!socket && isLogin) {
     socket = new WebSocket(process.env.EXPO_PUBLIC_WEBSOCKET_URL || "");
      socket.onopen = async () => {
       console.log("WebSocket connection established");

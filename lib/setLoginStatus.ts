@@ -7,7 +7,7 @@ export async function setLoginStatus(
 ) {
   setLogin(target);
   await AsyncStorage.setItem("loginStatus", "" + target);
-  await AsyncStorage.setItem("socketReady", "" + target);
+  // await AsyncStorage.setItem("socketReady", "" + target);
   const userId = await AsyncStorage.getItem("@user:id");
   setUserId(userId + "");
 }

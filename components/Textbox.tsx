@@ -1,4 +1,5 @@
 import { getSocket } from "@/lib/socket";
+import { useAuthStore } from "@/store/authStore";
 import { useUserStore } from "@/store/userStore";
 import { Audio } from "expo-av";
 import { useEffect, useRef, useState } from "react";
@@ -19,8 +20,9 @@ function interpolateColor(
   return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
 }
 
-export function TextBox({ type }: { type: "Anonymous" | "Reveal" }) {
+export function TextBox({ type, toUserId }: { type: "Anonymous" | "Reveal" | "Personal", toUserId?: string }) {
   const {userId, setUserId} = useUserStore();
+  const {isLogin, setLogin} = useAuthStore();
   const [text, setText] = useState("");
   const [height, setHeight] = useState(0);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
@@ -30,11 +32,14 @@ export function TextBox({ type }: { type: "Anonymous" | "Reveal" }) {
 
   async function createString() {
     const obj = {
-      category: "broadcast",
+      category: type === "Personal" ? "unicast" : "broadcast",
       type: type,
       text: text,
       userId: userId,
+      fromUserId: userId,
+      toUserId: toUserId
     };
+    
     const convert = JSON.stringify(obj);
     console.log(convert);
     return convert;
@@ -77,7 +82,7 @@ export function TextBox({ type }: { type: "Anonymous" | "Reveal" }) {
       setSendSound(sendClick.sound)
     }
     async function setWebSocket(){
-      websocket.current = await getSocket();
+      websocket.current = await getSocket(isLogin);
     }
     loadSound();
     setWebSocket();
@@ -141,7 +146,7 @@ export function TextBox({ type }: { type: "Anonymous" | "Reveal" }) {
             try {
               if(!websocket.current){
                 console.log("web socket not Initialized")
-                websocket.current = await getSocket()
+                websocket.current = await getSocket(isLogin)
               }
               websocket.current?.send(await createString());
               setText("")

@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 14,
-    backgroundColor: '#1e1e1e', // dark grey
+    backgroundColor: process.env.EXPO_PUBLIC_BG_COLOR, // dark grey
     borderBottomWidth: 1,
     borderBottomColor: '#333',
   },

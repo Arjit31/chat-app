@@ -1,23 +1,51 @@
-import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { GestureResponderEvent, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { setLoginStatus } from "@/lib/setLoginStatus";
+import { useAuthStore } from "@/store/authStore";
+import { useUserStore } from "@/store/userStore";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import * as SecureStore from "expo-secure-store";
+import {
+  GestureResponderEvent,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+} from "react-native";
 
-export function Logout(){
-    return (
-        <TouchableOpacity>
-            <FontAwesome6 name="face-laugh" size={30} color={process.env.EXPO_PUBLIC_FG1_COLOR} />
-        </TouchableOpacity>
-    )
+export function Logout() {
+  const { isLogin, setLogin } = useAuthStore();
+  const { userId, setUserId } = useUserStore();
+  return (
+    <TouchableOpacity
+      onPress={async () => {
+        await SecureStore.deleteItemAsync("refreshToken");
+        await setLoginStatus(false, setLogin, setUserId);
+      }}
+    >
+      <FontAwesome6
+        name="face-laugh"
+        size={30}
+        color={process.env.EXPO_PUBLIC_FG1_COLOR}
+      />
+    </TouchableOpacity>
+  );
 }
 
-export function Send({onPress} : {onPress: (event: GestureResponderEvent) => void}){
-    return (
-        <TouchableOpacity style = {styles.sendBackground}>
-            <Ionicons name="send" size={30} color={process.env.EXPO_PUBLIC_FG1_COLOR} onPress={onPress}/>
-        </TouchableOpacity>
-    )
+export function Send({
+  onPress,
+}: {
+  onPress: (event: GestureResponderEvent) => void;
+}) {
+  return (
+    <TouchableOpacity style={styles.sendBackground}>
+      <Ionicons
+        name="send"
+        size={30}
+        color={process.env.EXPO_PUBLIC_FG1_COLOR}
+        onPress={onPress}
+      />
+    </TouchableOpacity>
+  );
 }
-
 
 interface Props {
   onPress: (event: GestureResponderEvent) => void;
@@ -57,6 +85,6 @@ const styles = StyleSheet.create({
   sendBackground: {
     // backgroundColor: process.env.EXPO_PUBLIC_FG1_COLOR,
     borderRadius: 10,
-    padding: 6
-  }
+    padding: 6,
+  },
 });

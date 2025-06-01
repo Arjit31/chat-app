@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -6,12 +7,15 @@ export function ChatBubble({
   isSent,
   type,
   username,
+  userId
 }: {
   message: string;
   isSent: boolean;
-  type: "Anonymous" | "Reveal";
+  type: "Anonymous" | "Reveal" | "Personal";
   username: string;
+  userId: string;
 }) {
+  const router = useRouter();
   return (
     <View
       style={[
@@ -25,7 +29,23 @@ export function ChatBubble({
           isSent ? styles.sentBubble : styles.receivedBubble,
         ]}
       >
-        {type === "Reveal" && !isSent ? <Text style={styles.revealText}>{username}</Text> : <></>}
+        {type === "Reveal" && !isSent ? (
+          <Text
+            style={styles.revealText}
+            onPress={() =>
+            {
+              router.push({
+                pathname: "/(main)/userChat/[id]",
+                params: { id: userId, name: username },
+              })
+            }
+            }
+          >
+            {username}
+          </Text>
+        ) : (
+          <></>
+        )}
         <Text style={isSent ? styles.sentText : styles.receivedText}>
           {message}
         </Text>
@@ -66,8 +86,8 @@ const styles = StyleSheet.create({
     color: "#000000",
   },
   revealText: {
-    color: "#093b6d" // #093b6d 
-  }
+    color: "#093b6d", // #093b6d
+  },
 });
 
 export default ChatBubble;
