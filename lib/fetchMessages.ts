@@ -4,9 +4,11 @@ import axios from "axios";
 export async function fetchBroadcastMessages({
   lastNo,
   type,
+  limit
 }: {
   lastNo: number;
   type: "Anonymous" | "Reveal";
+  limit: number
 }) {
   const accessToken = await AsyncStorage.getItem("@token:accessToken");
   const res = await axios.get(
@@ -15,6 +17,7 @@ export async function fetchBroadcastMessages({
       params: {
         lastNo: lastNo,
         type: type,
+        limit: limit
       },
       headers: {
         Authorization: accessToken,
@@ -27,9 +30,11 @@ export async function fetchBroadcastMessages({
 export async function fetchUnicastMessages({
   lastNo,
   toUserId,
+  limit
 }: {
   lastNo: number;
   toUserId: string;
+  limit: number
 }) {
   const accessToken = await AsyncStorage.getItem("@token:accessToken");
   console.log(lastNo, toUserId);
@@ -39,6 +44,7 @@ export async function fetchUnicastMessages({
       params: {
         lastNo: lastNo,
         toUserId: toUserId,
+        limit: limit
       },
       headers: {
         Authorization: accessToken,
