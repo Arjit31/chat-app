@@ -5,6 +5,7 @@ import { Stack, useLocalSearchParams } from "expo-router";
 
 export default function userChat() {
     const { id, name } : {id: string, name: string} = useLocalSearchParams();
+    console.log(id, name);
   return (
     <Card>
       <Stack.Screen

@@ -11,14 +11,32 @@ import {
   TouchableOpacity,
 } from "react-native";
 
+import { assignNull, getSocket } from "@/lib/socket";
+import { useEffect } from "react";
+
+import { deleteEverything } from "@/lib/sqlite/broadcastStorage";
+import { deleteEverythingUnicast } from "@/lib/sqlite/unicastStorage";
+
 export function Logout() {
   const { isLogin, setLogin } = useAuthStore();
   const { userId, setUserId } = useUserStore();
+  useEffect(() => {
+    if(isLogin === false){
+      async function closeScoket(){
+        const socket = await getSocket(isLogin);
+        if(socket) socket.close();
+        assignNull()
+      }
+      closeScoket()
+    }
+  },[isLogin])
   return (
     <TouchableOpacity
       onPress={async () => {
         await SecureStore.deleteItemAsync("refreshToken");
         await setLoginStatus(false, setLogin, setUserId);
+        deleteEverything()
+        deleteEverythingUnicast()
       }}
     >
       <FontAwesome6

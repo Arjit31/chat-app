@@ -1,8 +1,8 @@
-import { messageType } from '@/types/Message';
-import * as SQLite from 'expo-sqlite';
+import { messageType } from "@/types/Message";
+import * as SQLite from "expo-sqlite";
 
 // Open the database synchronously
-const db = SQLite.openDatabaseSync('messages.db');
+const db = SQLite.openDatabaseSync("messages.db");
 
 // Create the messages table if it doesn't exist
 export function createMessagesTable() {
@@ -21,7 +21,7 @@ export function createMessagesTable() {
         username TEXT
       );`
     );
-    
+
     db.execSync(
       `CREATE INDEX IF NOT EXISTS idx_messages_lookup 
        ON messages(type, userId, toUserId, serialNo);`
@@ -31,7 +31,6 @@ export function createMessagesTable() {
 
 export function saveMessagesToDB(
   type: string,
-  userId: string,
   toUserId: string | undefined,
   messages: messageType[]
 ) {
@@ -45,8 +44,8 @@ export function saveMessagesToDB(
       stmt.executeSync([
         msg.id,
         type,
-        toUserId || '',
-        userId,
+        toUserId || "",
+        msg.userId,
         msg.text,
         msg.orderNo,
         msg.serialNo,
@@ -60,20 +59,18 @@ export function saveMessagesToDB(
 }
 
 export function loadMessagesFromDB(
-  type: string,
-  userId: string,
-  toUserId: string | undefined,
-  limit: number = 200
+  limit: number = 200,
+  type: string
 ): messageType[] {
   const stmt = db.prepareSync(`
     SELECT * FROM messages
-    WHERE type = ? AND userId = ? AND toUserId = ?
+    Where type = ?
     ORDER BY serialNo DESC
     LIMIT ?;
   `);
 
-  const results = stmt.executeSync([type, userId, toUserId || "", limit]);
-  
+  const results = stmt.executeSync([type, limit]);
+
   const rows = results.getAllSync();
   stmt.finalizeSync();
 
@@ -92,17 +89,15 @@ export function loadMessagesFromDB(
 }
 
 export function getLastSerialNoFromDB(
-  type: string,
-  userId: string,
-  toUserId: string | undefined
+  type: string
 ): number {
   const stmt = db.prepareSync(`
     SELECT MAX(serialNo) as maxSerialNo FROM messages
-    WHERE type = ? AND userId = ? AND toUserId = ?;
+    Where type = ?;
   `);
 
-  const results = stmt.executeSync([type, userId, toUserId || ""]);
-  
+  const results = stmt.executeSync([type]);
+
   const rows = results.getAllSync() as { maxSerialNo: number }[];
   stmt.finalizeSync();
   return rows[0]?.maxSerialNo || 0;
@@ -111,26 +106,25 @@ export function getLastSerialNoFromDB(
 // Load older messages from DB based on serialNo
 export function loadOlderMessagesFromDB(
   type: string,
-  userId: string,
-  toUserId: string | undefined,
   beforeSerialNo: number,
   limit: number
 ): messageType[] {
   const stmt = db.prepareSync(`
     SELECT * FROM messages
-    WHERE type = ? AND userId = ? AND toUserId = ? AND serialNo < ?
+    WHERE(
+      type = ? AND
+      serialNo < ?
+    )
     ORDER BY serialNo DESC
     LIMIT ?;
   `);
 
   const results = stmt.executeSync([
-    type, 
-    userId, 
-    toUserId || "", 
-    beforeSerialNo, 
-    limit
+    type,
+    beforeSerialNo,
+    limit,
   ]);
-  
+
   const rows = results.getAllSync();
   stmt.finalizeSync();
 
@@ -151,26 +145,25 @@ export function loadOlderMessagesFromDB(
 // Load older messages from DB based on serialNo
 export function loadNewerMessagesFromDB(
   type: string,
-  userId: string,
-  toUserId: string | undefined,
   afterSerialNo: number,
   limit: number
 ): messageType[] {
   const stmt = db.prepareSync(`
     SELECT * FROM messages
-    WHERE type = ? AND userId = ? AND toUserId = ? AND serialNo > ?
+    WHERE(
+      type = ? AND
+      serialNo > ?
+    )
     ORDER BY serialNo DESC
     LIMIT ?;
   `);
 
   const results = stmt.executeSync([
-    type, 
-    userId, 
-    toUserId || "", 
-    afterSerialNo, 
-    limit
+    type,
+    afterSerialNo,
+    limit,
   ]);
-  
+
   const rows = results.getAllSync();
   stmt.finalizeSync();
 
@@ -190,17 +183,15 @@ export function loadNewerMessagesFromDB(
 
 // Get total count of messages in DB
 export function getTotalMessagesCount(
-  type: string,
-  userId: string,
-  toUserId: string | undefined
+  type: string
 ): number {
   const stmt = db.prepareSync(`
     SELECT COUNT(*) as count FROM messages
-    WHERE type = ? AND userId = ? AND toUserId = ?;
+    WHERE type = ?
   `);
 
-  const results = stmt.executeSync([type, userId, toUserId || ""]);
-  
+  const results = stmt.executeSync([type]);
+
   const rows = results.getAllSync() as { count: number }[];
   stmt.finalizeSync();
   return rows[0]?.count || 0;
@@ -216,19 +207,21 @@ export function deleteOldMessages(
   db.withTransactionSync(() => {
     const stmt = db.prepareSync(`
       DELETE FROM messages 
-      WHERE type = ? AND userId = ? AND toUserId = ?
+      WHERE (
+        type IN ('Anonymous', 'Reveal')
+      )
       AND id NOT IN (
         SELECT id FROM messages 
-        WHERE type = ? AND userId = ? AND toUserId = ?
+        WHERE (
+          type IN ('Anonymous', 'Reveal')
+        )
         ORDER BY serialNo DESC 
         LIMIT ?
       );
     `);
-    
+
     const params = [
-      type, userId, toUserId || "", 
-      type, userId, toUserId || "", 
-      keepCount
+      keepCount,
     ];
     stmt.executeSync(params);
     stmt.finalizeSync();
@@ -249,12 +242,26 @@ export function getMessageStats(
       MIN(createdAt) as oldestMessage,
       MAX(createdAt) as newestMessage
     FROM messages
-    WHERE type = ? AND userId = ? AND toUserId = ?;
+    WHERE (
+      type IN ('Anonymous', 'Reveal')
+    );
   `);
 
-  const results = stmt.executeSync([type, userId, toUserId || ""]);
-  
+  const results = stmt.executeSync();
+
   const rows = results.getAllSync();
   stmt.finalizeSync();
   return rows[0] || {};
+}
+
+export function deleteEverything(
+) {
+  db.withTransactionSync(() => {
+    const stmt = db.prepareSync(`
+      DELETE FROM messages;
+    `);
+
+    stmt.executeSync();
+    stmt.finalizeSync();
+  });
 }

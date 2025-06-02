@@ -5,12 +5,13 @@ import {
   loadMoreOldMessages
 } from "@/lib/loadMessages";
 import { getSocket } from "@/lib/socket";
-import { createMessagesTable } from "@/lib/sqlite";
+import { createMessagesTable } from "@/lib/sqlite/broadcastStorage";
+import { createMessagesTableUnicast } from "@/lib/sqlite/unicastStorage";
 import { useAuthStore } from "@/store/authStore";
 import { useUserStore } from "@/store/userStore";
 import { messageType } from "@/types/Message";
 import { useFocusEffect } from "@react-navigation/native";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { FlatList as FlatListType } from "react-native";
 import { FlatList, View } from "react-native";
 import ChatBubble from "./ChatBubbles";
@@ -29,29 +30,20 @@ export function Chats({
   const [hasMore, setHasMore] = useState(true);
   const websocket = useRef<WebSocket>(null);
   const [isInitialSyncComplete, setIsInitialSyncComplete] = useState(false);
+  const [maxLastSerialNo, setMaxLastSerialNo] = useState(0);
+  const [lastSerialNo, setLastSerialNo] = useState(0);
   
-  const [messages, setMessages] = useState<messageType[]>([
-    {
-      id: "asdasd1",
-      orderNo: 1,
-      text: "Hey, how are you?",
-      isSent: false,
-      createdAt: "2025-04-23T08:30:15.366Z",
-      serialNo: 0,
-      username: "Rahul",
-      userId: "-11",
-    },
-  ]);
+  const [messages, setMessages] = useState<messageType[]>([]);
 
   async function setWebSocket() {
-    websocket.current = await getSocket(isLogin);
-    websocket.current.onmessage = (event) => {
+    websocket.current = await getSocket(isLogin) as WebSocket;
+    websocket.current.onmessage = async (event) => {
       // console.log("Received: " + event.data);
       const obj = JSON.parse(event.data);
       console.log(obj);
       console.log(type, obj.success, obj.type);
       
-      if (obj.success && obj.type === type && isInitialSyncComplete) {
+      if (obj.success && obj.type === type) {
         const listItem = {
           id: obj.id,
           orderNo: obj.orderNo,
@@ -62,13 +54,19 @@ export function Chats({
           username: obj.username,
           userId: obj.userId,
         };
-        console.log(listItem);
+        console.log("got message");
+        console.log("listItem", listItem);
         
-        addWebSocketMessage({
+        await addWebSocketMessage({
           message: listItem,
           type,
           userId,
           toUserId,
+          maxLastSerialNo,
+          setMaxLastSerialNo,
+          lastSerialNo,
+          setLastSerialNo,
+          setMessages
         });
       }
     };
@@ -78,9 +76,12 @@ export function Chats({
     useCallback(() => {
       async function onMountEvents() {
         try {
+          setMessages([])
           createMessagesTable();
+          createMessagesTableUnicast();
           
           console.log("Starting initial load...");
+          console.log(toUserId);
           
           await loadInitialMessages({
             type,
@@ -88,6 +89,8 @@ export function Chats({
             toUserId,
             setMessages,
             setHasMore,
+            setLastSerialNo,
+            setMaxLastSerialNo
           });
           
           setIsInitialSyncComplete(true);
@@ -106,14 +109,6 @@ export function Chats({
       }
     }, [isLogin, toUserId, type])
   );
-
-  useEffect(() => {
-    return () => {
-      if (websocket.current) {
-        websocket.current.close();
-      }
-    };
-  }, []);
 
   return (
     <View style={{ width: "100%", flex: 1, justifyContent: "flex-end" }}>
@@ -146,6 +141,8 @@ export function Chats({
             type,
             toUserId,
             userId,
+            setLastSerialNo,
+            setMaxLastSerialNo
           });
         }}
         onStartReached={() => {
@@ -159,6 +156,8 @@ export function Chats({
             type,
             toUserId,
             userId,
+            setLastSerialNo,
+            setMaxLastSerialNo
           });
         }}
         onEndReachedThreshold={0.1}

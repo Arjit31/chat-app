@@ -7,20 +7,32 @@ import {
   loadNewerMessagesFromDB,
   loadOlderMessagesFromDB,
   saveMessagesToDB,
-} from "@/lib/sqlite";
+} from "@/lib/sqlite/broadcastStorage";
+import {
+  getLastSerialNoFromDBUnicast,
+  getTotalMessagesCountUnicast,
+  loadMessagesFromDBUnicast,
+  loadNewerMessagesFromDBUnicast,
+  loadOlderMessagesFromDBUnicast,
+  saveMessagesToDBUnicast,
+} from "@/lib/sqlite/unicastStorage";
 import { fetchBroadcastMessages, fetchUnicastMessages } from "./fetchMessages";
 
-const MESSAGES_LIMIT = 200;
-const MEMORY_LIMIT = 400;
+const MESSAGES_LIMIT = 15;
+const MEMORY_LIMIT = 30;
 
 export function addNewItem({
   newMessages,
   setMessages,
   orderType,
+  setMaxLastSerialNo,
+  setLastSerialNo,
 }: {
   newMessages: messageType[];
   setMessages: (value: React.SetStateAction<messageType[]>) => void;
   orderType: string;
+  setMaxLastSerialNo: React.Dispatch<React.SetStateAction<number>>;
+  setLastSerialNo: React.Dispatch<React.SetStateAction<number>>;
 }) {
   setMessages((prevMessages) => {
     let updatedList =
@@ -35,11 +47,7 @@ export function addNewItem({
       uniqueMap.set(msg.id, msg);
     }
     updatedList = Array.from(uniqueMap.values());
-    const trimmedList =
-      orderType === "new" || orderType === "initial"
-        ? updatedList.slice(-MEMORY_LIMIT)
-        : updatedList.slice(0, MEMORY_LIMIT);
-    trimmedList.sort((a, b) => {
+    updatedList.sort((a, b) => {
       if (a.orderNo !== b.orderNo) {
         return b.orderNo - a.orderNo;
       } else {
@@ -48,6 +56,18 @@ export function addNewItem({
         );
       }
     });
+    const trimmedList =
+    orderType === "new" || orderType === "initial"
+    ? updatedList.slice(0, MEMORY_LIMIT)
+    : updatedList.slice(-MEMORY_LIMIT);
+    const serialNo =
+    trimmedList.length > 0
+    ? Math.max(...trimmedList.map((m) => m.serialNo))
+    : 0;
+    // console.log(trimmedList);
+    setLastSerialNo(serialNo);
+    setMaxLastSerialNo((prevNum) => Math.max(prevNum, serialNo));
+    // console.log(trimmedList);
     return trimmedList;
   });
 }
@@ -58,17 +78,23 @@ export async function loadInitialMessages({
   toUserId,
   setMessages,
   setHasMore,
+  setMaxLastSerialNo,
+  setLastSerialNo,
 }: {
   type: "Anonymous" | "Reveal" | "Personal";
   userId: string;
   toUserId: string | undefined;
   setMessages: React.Dispatch<React.SetStateAction<messageType[]>>;
   setHasMore: React.Dispatch<React.SetStateAction<boolean>>;
+  setMaxLastSerialNo: React.Dispatch<React.SetStateAction<number>>;
+  setLastSerialNo: React.Dispatch<React.SetStateAction<number>>;
 }) {
   try {
-    const lastSerialNo = await getLastSerialNoFromDB(type, userId, toUserId);
+    const lastSerialNo =
+      type === "Personal"
+        ? await getLastSerialNoFromDBUnicast(type, userId, toUserId)
+        : await getLastSerialNoFromDB(type);
     console.log("Last serialNo in DB:", lastSerialNo);
-
     const res =
       type === "Personal"
         ? await fetchUnicastMessages({
@@ -84,31 +110,38 @@ export async function loadInitialMessages({
 
     const fetchedMessages: messageType[] = res.data;
     console.log("Fetched messages count:", fetchedMessages.length);
-
     if (fetchedMessages.length > 0) {
-      await saveMessagesToDB(type, userId, toUserId, fetchedMessages);
+      type === "Personal"
+        ? await saveMessagesToDBUnicast(type, userId, toUserId, fetchedMessages)
+        : await saveMessagesToDB(type, toUserId, fetchedMessages);
+
       console.log("Saved all fetched messages to SQLite");
     }
 
-    const messagesForDisplay = await loadMessagesFromDB(
-      type,
-      userId,
-      toUserId,
-      MESSAGES_LIMIT
-    );
-    console.log(messagesForDisplay);
+    const messagesForDisplay =
+      type === "Personal"
+        ? await loadMessagesFromDBUnicast(
+            type,
+            userId,
+            toUserId,
+            MESSAGES_LIMIT
+          )
+        : await loadMessagesFromDB(MESSAGES_LIMIT, type);
+    // console.log(messagesForDisplay);
     addNewItem({
       newMessages: messagesForDisplay,
       setMessages,
       orderType: "initial",
+      setLastSerialNo,
+      setMaxLastSerialNo,
     });
 
-    const totalMessagesInDB = await getTotalMessagesCount(
-      type,
-      userId,
-      toUserId
-    );
-    setHasMore(totalMessagesInDB > MESSAGES_LIMIT);
+    const totalMessagesInDB =
+      type === "Personal"
+        ? await getTotalMessagesCountUnicast(type, userId, toUserId)
+        : await getTotalMessagesCount(type);
+    console.log(totalMessagesInDB, MEMORY_LIMIT);
+    // setHasMore(totalMessagesInDB > MESSAGES_LIMIT);
 
     console.log("Loaded", messagesForDisplay.length, "messages for display");
   } catch (error) {
@@ -126,6 +159,8 @@ export async function loadMoreOldMessages({
   type,
   toUserId,
   userId,
+  setMaxLastSerialNo,
+  setLastSerialNo,
 }: {
   loadingMore: boolean;
   hasMore: boolean;
@@ -136,8 +171,11 @@ export async function loadMoreOldMessages({
   toUserId: string | undefined;
   userId: string;
   setMessages: React.Dispatch<React.SetStateAction<messageType[]>>;
+  setMaxLastSerialNo: React.Dispatch<React.SetStateAction<number>>;
+  setLastSerialNo: React.Dispatch<React.SetStateAction<number>>;
 }) {
-  if (loadingMore || !hasMore) return;
+  console.log("end reached", loadingMore, hasMore);
+  if (loadingMore) return;
 
   setLoadingMore(true);
 
@@ -146,27 +184,27 @@ export async function loadMoreOldMessages({
     const oldestSerialNo =
       messages.length > 0 ? Math.min(...messages.map((m) => m.serialNo)) : 0;
 
-    const olderMessagesFromDB = await loadOlderMessagesFromDB(
-      type,
-      userId,
-      toUserId,
-      oldestSerialNo,
-      MESSAGES_LIMIT
-    );
+    const olderMessagesFromDB =
+      type === "Personal"
+        ? await loadOlderMessagesFromDBUnicast(
+            type,
+            userId,
+            toUserId,
+            oldestSerialNo,
+            MESSAGES_LIMIT
+          )
+        : await loadOlderMessagesFromDB(type, oldestSerialNo, MESSAGES_LIMIT);
 
-    if (olderMessagesFromDB.length === 0) {
-      setHasMore(false);
-    } else {
+        if (olderMessagesFromDB.length === 0) {
+          setHasMore(false);
+        } else {
+      // console.log(oldestSerialNo, olderMessagesFromDB.length)
       addNewItem({
         newMessages: olderMessagesFromDB,
         setMessages,
         orderType: "old",
-      });
-      setMessages((prev) => {
-        const combined = [...olderMessagesFromDB, ...prev];
-        return combined.length > MEMORY_LIMIT
-          ? combined.slice(0, MEMORY_LIMIT)
-          : combined;
+        setLastSerialNo,
+        setMaxLastSerialNo,
       });
     }
   } catch (error) {
@@ -186,6 +224,8 @@ export async function loadMoreNewMessages({
   type,
   toUserId,
   userId,
+  setMaxLastSerialNo,
+  setLastSerialNo,
 }: {
   loadingMore: boolean;
   hasMore: boolean;
@@ -196,8 +236,11 @@ export async function loadMoreNewMessages({
   toUserId: string | undefined;
   userId: string;
   setMessages: React.Dispatch<React.SetStateAction<messageType[]>>;
+  setMaxLastSerialNo: React.Dispatch<React.SetStateAction<number>>;
+  setLastSerialNo: React.Dispatch<React.SetStateAction<number>>;
 }) {
-  if (loadingMore || !hasMore) return;
+  console.log("start reached", loadingMore);
+  if (loadingMore) return;
 
   setLoadingMore(true);
 
@@ -205,22 +248,31 @@ export async function loadMoreNewMessages({
     // Get oldest serialNo from current state (not DB)
     const lastSerialNo =
       messages.length > 0 ? Math.max(...messages.map((m) => m.serialNo)) : 0;
+    console.log(lastSerialNo);
 
-    const nextMessagesFromDB = await loadNewerMessagesFromDB(
-      type,
-      userId,
-      toUserId,
-      lastSerialNo,
-      MESSAGES_LIMIT
-    );
+    const nextMessagesFromDB =
+      type === "Personal"
+        ? await loadNewerMessagesFromDBUnicast(
+            type,
+            userId,
+            toUserId,
+            lastSerialNo,
+            MESSAGES_LIMIT
+          )
+        : await loadNewerMessagesFromDB(type, lastSerialNo, MESSAGES_LIMIT);
 
     if (nextMessagesFromDB.length === 0) {
-      setHasMore(false);
+      setLastSerialNo(lastSerialNo);
+    setMaxLastSerialNo((prevNum) => Math.max(prevNum, lastSerialNo));
+      console.log("no new message");
+      // setHasMore(false);
     } else {
       addNewItem({
         newMessages: nextMessagesFromDB,
         setMessages,
         orderType: "new",
+        setLastSerialNo,
+        setMaxLastSerialNo,
       });
     }
   } catch (error) {
@@ -230,20 +282,48 @@ export async function loadMoreNewMessages({
   setLoadingMore(false);
 }
 
-// UPDATED: New function to add single WebSocket message
 export async function addWebSocketMessage({
   message,
   type,
   userId,
   toUserId,
+  maxLastSerialNo,
+  lastSerialNo,
+  setMaxLastSerialNo,
+  setLastSerialNo,
+  setMessages,
 }: {
   message: messageType;
   type: "Anonymous" | "Reveal" | "Personal";
   userId: string;
   toUserId: string | undefined;
+  maxLastSerialNo: number;
+  setMaxLastSerialNo: React.Dispatch<React.SetStateAction<number>>;
+  lastSerialNo: number;
+  setLastSerialNo: React.Dispatch<React.SetStateAction<number>>;
+  setMessages: React.Dispatch<React.SetStateAction<messageType[]>>;
 }) {
   try {
-    await saveMessagesToDB(type, userId, toUserId, [message]);
+    console.log(message);
+    type === "Personal"
+      ? await saveMessagesToDBUnicast(type, userId, toUserId, [message])
+      : await saveMessagesToDB(type, toUserId, [message]);
+    console.log("serial No", lastSerialNo, maxLastSerialNo);
+    if (lastSerialNo === maxLastSerialNo) {
+      // console.log(lastSerialNo, maxLastSerialNo)
+      const newMessages =
+        type === "Personal"
+          ? await loadMessagesFromDBUnicast(type, userId, toUserId, 1)
+          : await loadMessagesFromDB(1, type);
+      console.log(newMessages);
+      addNewItem({
+        newMessages,
+        setMessages,
+        orderType: "new",
+        setLastSerialNo,
+        setMaxLastSerialNo,
+      });
+    }
   } catch (error) {
     console.error("addWebSocketMessage error", error);
   }

@@ -1,4 +1,4 @@
-let socket : WebSocket;
+let socket : WebSocket | null;
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 async function onConnectionMessage(){
@@ -17,7 +17,8 @@ export async function getSocket(isLogin: boolean){
      socket.onopen = async () => {
       console.log("WebSocket connection established");
       const sendMessage = await onConnectionMessage();
-      socket.send(sendMessage); 
+      console.log(sendMessage);
+      if(socket) socket.send(sendMessage); 
     };
 
     socket.onclose = async() => {
@@ -32,3 +33,7 @@ export async function getSocket(isLogin: boolean){
   }
   return socket;
 };
+
+export function assignNull(){
+  socket = null;
+}

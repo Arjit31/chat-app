@@ -13,7 +13,9 @@ async function setTokens(res: AxiosResponse<any, any>) {
     res.data.connectionToken
   );
   const refreshToken = await SecureStore.getItemAsync("refreshToken");
+  const connectionToken = await AsyncStorage.getItem("@token:connectionToken")
   console.log("refreshToken", refreshToken);
+  console.log("connectionToken", connectionToken);
 }
 
 export async function signup({
