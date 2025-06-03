@@ -2,27 +2,48 @@ import { refreshAccessToken, refreshAllToken } from "@/lib/refreshToken";
 import { setLoginStatus } from "@/lib/setLoginStatus";
 import { useAuthStore } from "@/store/authStore";
 import { useUserStore } from "@/store/userStore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import NetInfo from "@react-native-community/netinfo";
 import { Redirect, SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const {isLogin, setLogin} = useAuthStore();
   const {userId, setUserId} = useUserStore();
+  const [isOnline, setIsOnline] = useState(true);
 
   useEffect(() => {
+    const unsubscribeNetInfo = NetInfo.addEventListener((state) => {
+      const online = state.isConnected && state.isInternetReachable;
+      setIsOnline(!!online);
+    });
+    
     const init = async () => {
       try {
-        const flag = await refreshAllToken()
-        console.log(flag);
-        if(flag){
-          if(isLogin == false) await setLoginStatus(true, setLogin, setUserId);
-        }
-        else{
-          console.log("refresh failed")
-          if(isLogin) await setLoginStatus(false, setLogin, setUserId);
+        const storedLoginStatus = await AsyncStorage.getItem("loginStatus");
+
+        if (isOnline) {
+          const flag = await refreshAllToken();
+
+          const netStatus = await NetInfo.fetch();
+          if (!(netStatus.isConnected && netStatus.isInternetReachable)){
+            const login = storedLoginStatus === "true";
+            setLoginStatus(login, setLogin, setUserId);
+            return;
+          }
+
+          if (flag) {
+            if (!isLogin) await setLoginStatus(true, setLogin, setUserId);
+          } else {
+            if (isLogin) await setLoginStatus(false, setLogin, setUserId);
+          }
+        } else {
+          console.log("no internet")
+          const login = storedLoginStatus === "true";
+          setLoginStatus(login, setLogin, setUserId);
         }
       } catch (error) {
         console.log(error);
@@ -32,15 +53,25 @@ export default function RootLayout() {
     init();
 
     const interval = setInterval(async () => {
-      const flag = await refreshAccessToken();
-      console.log("token refreshed")
-      if(!flag && isLogin){
-        setLogin(false);
-      }
-    }, 14 * 60 * 1000); // 14 minutes
+      if (!isOnline) return;
 
-    return () => clearInterval(interval);
-  }, []);
+      const flag = await refreshAccessToken();
+
+      const netStatus = await NetInfo.fetch();
+      if (!(netStatus.isConnected && netStatus.isInternetReachable)) return;
+
+      console.log("Token refresh attempt");
+
+      if (!flag && isLogin) {
+        await setLoginStatus(false, setLogin, setUserId);
+      }
+    }, 14 * 60 * 1000); // every 14 minutes
+
+    return () =>  {
+      clearInterval(interval);
+      unsubscribeNetInfo();
+    };
+  }, [isOnline]);
 
   return (
     <>

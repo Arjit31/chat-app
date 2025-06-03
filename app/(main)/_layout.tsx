@@ -1,12 +1,21 @@
 import { Logout } from "@/components/Button";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PlatformPressable } from "@react-navigation/elements";
 import { Tabs } from "expo-router";
-import React from "react";
-import { View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Text, View } from "react-native";
 
 export default function MainLayout() {
+  const [name, setName] = useState("")
+  useEffect(() => {
+    async function onMount(){
+      const getName = await AsyncStorage.getItem("@user:name");
+      setName(getName+"")
+    }
+    onMount()
+  },[])
   return (
     <Tabs
       screenOptions={{
@@ -52,7 +61,8 @@ export default function MainLayout() {
         },
         headerRight(props) {
           return (
-            <View style={{ padding: 10 }}>
+            <View style={{flexDirection: "row", gap: 20, alignContent: "center", justifyContent: "center", paddingRight: 10 }}>
+              <Text style={{color: process.env.EXPO_PUBLIC_FG1_COLOR, fontSize: 25}}>{name}</Text>
               <Logout></Logout>
             </View>
           );

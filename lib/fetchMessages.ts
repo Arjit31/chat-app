@@ -10,21 +10,27 @@ export async function fetchBroadcastMessages({
   type: "Anonymous" | "Reveal";
   limit: number
 }) {
-  const accessToken = await AsyncStorage.getItem("@token:accessToken");
-  const res = await axios.get(
-    process.env.EXPO_PUBLIC_BACKEND_URL + "/api/v1/broadcast/fetch-broadcast",
-    {
-      params: {
-        lastNo: lastNo,
-        type: type,
-        limit: limit
-      },
-      headers: {
-        Authorization: accessToken,
-      },
-    }
-  );
-  return res;
+  try {
+    const accessToken = await AsyncStorage.getItem("@token:accessToken");
+    const res = await axios.get(
+      process.env.EXPO_PUBLIC_BACKEND_URL + "/api/v1/broadcast/fetch-broadcast",
+      {
+        params: {
+          lastNo: lastNo,
+          type: type,
+          limit: limit
+        },
+        headers: {
+          Authorization: accessToken,
+        },
+      }
+    );
+    
+    return res;
+  } catch (error) {
+    console.log(error);
+    
+  }
 }
 
 export async function fetchUnicastMessages({
@@ -36,20 +42,25 @@ export async function fetchUnicastMessages({
   toUserId: string;
   limit: number
 }) {
-  const accessToken = await AsyncStorage.getItem("@token:accessToken");
-  console.log(lastNo, toUserId);
-  const res = await axios.get(
-    process.env.EXPO_PUBLIC_BACKEND_URL + "/api/v1/unicast/fetch-unicast",
-    {
-      params: {
-        lastNo: lastNo,
-        toUserId: toUserId,
-        limit: limit
-      },
-      headers: {
-        Authorization: accessToken,
-      },
-    }
-  );
-  return res;
+  try {
+    const accessToken = await AsyncStorage.getItem("@token:accessToken");
+    console.log(lastNo, toUserId);
+    const res = await axios.get(
+      process.env.EXPO_PUBLIC_BACKEND_URL + "/api/v1/unicast/fetch-unicast",
+      {
+        params: {
+          lastNo: lastNo,
+          toUserId: toUserId,
+          limit: limit
+        },
+        headers: {
+          Authorization: accessToken,
+        },
+      }
+    );
+    return res;
+    
+  } catch (error) {
+    console.log(error);
+  }
 }

@@ -108,7 +108,7 @@ export async function loadInitialMessages({
             limit: -1,
           });
 
-    const fetchedMessages: messageType[] = res.data;
+    const fetchedMessages: messageType[] = res?.data;
     console.log("Fetched messages count:", fetchedMessages.length);
     if (fetchedMessages.length > 0) {
       type === "Personal"
@@ -118,35 +118,35 @@ export async function loadInitialMessages({
       console.log("Saved all fetched messages to SQLite");
     }
 
-    const messagesForDisplay =
-      type === "Personal"
-        ? await loadMessagesFromDBUnicast(
-            type,
-            userId,
-            toUserId,
-            MESSAGES_LIMIT
-          )
-        : await loadMessagesFromDB(MESSAGES_LIMIT, type);
-    // console.log(messagesForDisplay);
-    addNewItem({
-      newMessages: messagesForDisplay,
-      setMessages,
-      orderType: "initial",
-      setLastSerialNo,
-      setMaxLastSerialNo,
-    });
-
-    const totalMessagesInDB =
-      type === "Personal"
-        ? await getTotalMessagesCountUnicast(type, userId, toUserId)
-        : await getTotalMessagesCount(type);
-    console.log(totalMessagesInDB, MEMORY_LIMIT);
-    // setHasMore(totalMessagesInDB > MESSAGES_LIMIT);
-
-    console.log("Loaded", messagesForDisplay.length, "messages for display");
   } catch (error) {
-    console.error("loadInitialMessages error", error);
+    console.log("loadInitialMessages error", error);
   }
+  const messagesForDisplay =
+    type === "Personal"
+      ? await loadMessagesFromDBUnicast(
+          type,
+          userId,
+          toUserId,
+          MESSAGES_LIMIT
+        )
+      : await loadMessagesFromDB(MESSAGES_LIMIT, type);
+  // console.log(messagesForDisplay);
+  addNewItem({
+    newMessages: messagesForDisplay,
+    setMessages,
+    orderType: "initial",
+    setLastSerialNo,
+    setMaxLastSerialNo,
+  });
+  
+  const totalMessagesInDB =
+    type === "Personal"
+      ? await getTotalMessagesCountUnicast(type, userId, toUserId)
+      : await getTotalMessagesCount(type);
+  console.log(totalMessagesInDB, MEMORY_LIMIT);
+  // setHasMore(totalMessagesInDB > MESSAGES_LIMIT);
+  
+  console.log("Loaded", messagesForDisplay.length, "messages for display");
 }
 
 export async function loadMoreOldMessages({
@@ -208,7 +208,7 @@ export async function loadMoreOldMessages({
       });
     }
   } catch (error) {
-    console.error("loadMoreMessages error", error);
+    console.log("loadMoreMessages error", error);
   }
 
   setLoadingMore(false);
@@ -276,7 +276,7 @@ export async function loadMoreNewMessages({
       });
     }
   } catch (error) {
-    console.error("loadMoreMessages error", error);
+    console.log("loadMoreMessages error", error);
   }
 
   setLoadingMore(false);
@@ -325,6 +325,6 @@ export async function addWebSocketMessage({
       });
     }
   } catch (error) {
-    console.error("addWebSocketMessage error", error);
+    console.log("addWebSocketMessage error", error);
   }
 }

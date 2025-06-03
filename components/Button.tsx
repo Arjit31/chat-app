@@ -1,7 +1,7 @@
 import { setLoginStatus } from "@/lib/setLoginStatus";
 import { useAuthStore } from "@/store/authStore";
 import { useUserStore } from "@/store/userStore";
-import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import AntDesign from "@expo/vector-icons/AntDesign";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as SecureStore from "expo-secure-store";
 import {
@@ -21,29 +21,35 @@ export function Logout() {
   const { isLogin, setLogin } = useAuthStore();
   const { userId, setUserId } = useUserStore();
   useEffect(() => {
-    if(isLogin === false){
-      async function closeScoket(){
+    if (isLogin === false) {
+      async function closeScoket() {
         const socket = await getSocket(isLogin);
-        if(socket) socket.close();
-        assignNull()
+        if (socket) socket.close();
+        assignNull();
       }
-      closeScoket()
+      closeScoket();
     }
-  },[isLogin])
+  }, [isLogin]);
   return (
     <TouchableOpacity
       onPress={async () => {
         await SecureStore.deleteItemAsync("refreshToken");
         await setLoginStatus(false, setLogin, setUserId);
-        deleteEverything()
-        deleteEverythingUnicast()
+        deleteEverything();
+        deleteEverythingUnicast();
       }}
+      style={{alignItems: "center", justifyContent: "center"}}
     >
-      <FontAwesome6
+      <AntDesign
+        name="poweroff"
+        size={25}
+        color={process.env.EXPO_PUBLIC_FG1_COLOR}
+      />
+      {/* <FontAwesome6
         name="face-laugh"
         size={30}
         color={process.env.EXPO_PUBLIC_FG1_COLOR}
-      />
+      /> */}
     </TouchableOpacity>
   );
 }
