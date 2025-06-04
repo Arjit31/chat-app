@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  console.log("root layout reached")
   const {isLogin, setLogin} = useAuthStore();
   const {userId, setUserId} = useUserStore();
   const [isOnline, setIsOnline] = useState(true);

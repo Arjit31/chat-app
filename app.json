@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "drop-thought",
-    "slug": "drop-thought",
+    "name": "chat-app",
+    "slug": "chat-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon-new.png",
