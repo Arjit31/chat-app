@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "chat-app",
-    "slug": "chat-app",
+    "name": "drop-thought",
+    "slug": "drop-thought",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/icon-new.png",
     "scheme": "chatapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -14,8 +14,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/images/adaptive-icon-new1.png",
+        "backgroundColor": "#3F4247"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.anonymous.chatapp"
@@ -23,17 +23,17 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon-new.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/splash-icon-new1.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#2a2a2a"
+          "backgroundColor": "#3F4247"
         }
       ],
       [
