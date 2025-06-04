@@ -1,9 +1,10 @@
 let socket : WebSocket | null;
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { refreshAllToken } from "./refreshToken";
 
 async function onConnectionMessage(){
   const connectionToken = await AsyncStorage.getItem("@token:connectionToken");
-  console.log(connectionToken);
+  // console.log(connectionToken);
   const sendObj = {
     category: "connection",
     connectionToken: connectionToken
@@ -12,12 +13,14 @@ async function onConnectionMessage(){
 }
 
 export async function getSocket(isLogin: boolean){
-  if (!socket && isLogin) {
+  console.log("CHECK SOCKET STATUS", socket?.readyState, socket?.CLOSED)
+  if ((!socket || socket.readyState === socket.CLOSED) && isLogin) {
     socket = new WebSocket(process.env.EXPO_PUBLIC_WEBSOCKET_URL || "");
-     socket.onopen = async () => {
+    socket.onopen = async () => {
       console.log("WebSocket connection established");
+      await refreshAllToken()
       const sendMessage = await onConnectionMessage();
-      console.log(sendMessage);
+      // console.log(sendMessage);
       if(socket) socket.send(sendMessage); 
     };
 

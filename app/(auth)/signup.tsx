@@ -2,6 +2,8 @@ import { TermsAndConditions } from "@/components/TermsAndConditions";
 import { signup } from "@/lib/authentication";
 import { useAuthStore } from "@/store/authStore";
 import { useUserStore } from "@/store/userStore";
+import axios from "axios";
+import * as Linking from 'expo-linking';
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -20,9 +22,45 @@ export default function Signup() {
   const [is18Plus, setIs18Plus] = useState(false);
   const [termsVisible, setTermsVisible] = useState(false);
   const [disabled, setDisabled] = useState(false);
+  const [usernameAvailability, setUsernameAvailability] = useState("");
+    const [checkingUsername, setCheckingUsername] = useState(false);
+  const [usernameChecked, setUsernameChecked] = useState(false);
 
   const router = useRouter();
   const onNext = () => setStep((s) => s + 1);
+
+    async function checkUsernameAvailability() {
+    if (!username.trim()) return;
+    
+    setCheckingUsername(true);
+    setUsernameAvailability("");
+    
+    try {
+      // Replace BASE_URL with your actual server URL
+      const response = await axios.post(process.env.EXPO_PUBLIC_BACKEND_URL + "/api/v1/auth/check-username", {
+        username: username.trim()
+      });
+      
+      if (response.data.success) {
+        setUsernameAvailability(response.data.available ? 'available' : 'unavailable');
+        setUsernameChecked(true);
+      } else {
+        console.error('Error checking username:', response.data.message);
+        setUsernameAvailability('error');
+      }
+    } catch (error) {
+      console.log('Error checking username:', error);
+      setUsernameAvailability('error');
+    } finally {
+      setCheckingUsername(false);
+    }
+  }
+
+  const handleUsernameChange = (text: string) => {
+    setUsername(text);
+    setUsernameChecked(false);
+    setUsernameAvailability("");
+  };
 
   async function onSubmit() {
     setDisabled(true);
@@ -39,22 +77,45 @@ export default function Signup() {
 
       {step === 1 && (
         <>
-          <InputField
-            placeholder="Username"
-            value={username}
-            onChangeText={setUsername}
-            autoCapitalize="none"
-          />
+          <View>
+            <View>
+              <InputField
+                placeholder="Username"
+                value={username}
+                onChangeText={handleUsernameChange}
+                autoCapitalize="none"
+              />
+            </View>
+            
+            {/* Username availability status */}
+            {usernameAvailability === 'available' && (
+              <Text style={styles.availableText}>✓ Username is available</Text>
+            )}
+            {usernameAvailability === 'unavailable' && (
+              <Text style={styles.unavailableText}>✗ Username is not available</Text>
+            )}
+            {usernameAvailability === 'error' && (
+              <Text style={styles.errorText}>Error checking username. Please try again.</Text>
+            )}
+          </View>
+
           <Text style={styles.warning}>
             ⚠️ Remember this username to sign in later.
           </Text>
           <ButtonPrimary
+            title={checkingUsername ? "..." : "Check"}
+            onPress={checkUsernameAvailability}
+            disabled={!username.trim() || checkingUsername}
+          />
+          
+          <ButtonPrimary
             title="Next"
             onPress={onNext}
-            disabled={!username.trim()}
+            disabled={!username.trim() || !usernameChecked || usernameAvailability !== 'available'}
           />
         </>
       )}
+
 
       {step === 2 && (
         <>
@@ -93,7 +154,7 @@ export default function Signup() {
               I have read and agree to the{" "}
               <Text
                 style={styles.linkInline}
-                onPress={() => setTermsVisible(true)}
+                onPress={() => {Linking.openURL("https://arjit31.github.io/privacy-policy/")}}
               >
                 Terms and Conditions
               </Text>
@@ -170,5 +231,39 @@ const styles = StyleSheet.create({
   linkInline: {
     textDecorationLine: "underline",
     color: process.env.EXPO_PUBLIC_PRIMARY_COLOR || "#a079c6",
+  },
+  usernameContainer: {
+    marginBottom: 15,
+  },
+  inputWithButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
+    gap: 10,
+  },
+  usernameInput: {
+    flex: 1,
+  },
+  checkButton: {
+    minWidth: 80,
+    paddingHorizontal: 15,
+  },
+  availableText: {
+    color: "#4CAF50", // Green
+    fontSize: 14,
+    marginTop: 5,
+    marginLeft: 5,
+  },
+  unavailableText: {
+    color: "#F44336", // Red
+    fontSize: 14,
+    marginTop: 5,
+    marginLeft: 5,
+  },
+  errorText: {
+    color: "#FF9800", // Orange
+    fontSize: 14,
+    marginTop: 5,
+    marginLeft: 5,
   },
 });

@@ -39,7 +39,7 @@ export async function refreshAllToken()  : Promise<boolean> {
     if (!refreshToken){
       throw new Error("No refresh token")
     }
-    console.log(refreshToken)
+    // console.log(refreshToken)
     const res = await axios.put(
       process.env.EXPO_PUBLIC_BACKEND_URL + "/api/v1/auth/refreshTokens",
       {
