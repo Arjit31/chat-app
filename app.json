@@ -42,6 +42,7 @@
           "configureAndroidBackup": true
         }
       ],
+      "expo-audio",
       "expo-sqlite"
     ],
     "experiments": {

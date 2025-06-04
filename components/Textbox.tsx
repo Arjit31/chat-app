@@ -37,22 +37,22 @@ export function TextBox({ type, toUserId }: { type: "Anonymous" | "Reveal" | "Pe
       text: text,
       userId: userId,
       fromUserId: userId,
-      toUserId: toUserId
+      toUserId: toUserId,
     };
-    
+
     const convert = JSON.stringify(obj);
     console.log(convert);
     return convert;
   }
   const maxChars = 200;
   const startColor = [242, 237, 246]; //rgb(242, 237, 246)
-  const endColor = [181, 168, 168]; //rgb(181, 168, 168)
+  const endColor = [227, 210, 210]; //rgb(227, 210, 210)
 
   const ratio = Math.min(text.length / maxChars, 1);
   const interpolatedBorderColor = interpolateColor(startColor, endColor, ratio);
   const interpolatedBackgroundColor = interpolateColor(
     startColor,
-    endColor,
+    type === "Anonymous" ? endColor : startColor,
     ratio
   );
 
