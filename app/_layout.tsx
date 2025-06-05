@@ -4,14 +4,16 @@ import { useAuthStore } from "@/store/authStore";
 import { useUserStore } from "@/store/userStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
+// import 'expo-dev-client';
 import { Redirect, SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
+console.log("root layout reached")
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  console.log("root layout reached")
   const {isLogin, setLogin} = useAuthStore();
   const {userId, setUserId} = useUserStore();
   const [isOnline, setIsOnline] = useState(true);
@@ -48,8 +50,9 @@ export default function RootLayout() {
         }
       } catch (error) {
         console.log(error);
-      }
-      SplashScreen.hideAsync();
+      } finally {
+      await SplashScreen.hideAsync(); // 👈 CRUCIAL
+    }
     };
     init();
 
@@ -75,7 +78,7 @@ export default function RootLayout() {
   }, [isOnline]);
 
   return (
-    <>
+    <GestureHandlerRootView>
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen
@@ -98,6 +101,6 @@ export default function RootLayout() {
         />
       </Stack>
       {isLogin ? <Redirect href={"/(main)"} /> : <Redirect href={"/(auth)"} />}
-    </>
+    </GestureHandlerRootView>
   );
 }
