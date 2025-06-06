@@ -18,8 +18,8 @@ import {
 } from "@/lib/sqlite/unicastStorage";
 import { fetchBroadcastMessages, fetchUnicastMessages } from "./fetchMessages";
 
-const MESSAGES_LIMIT = 15;
-const MEMORY_LIMIT = 30;
+const MESSAGES_LIMIT = 100;
+const MEMORY_LIMIT = 200;
 
 export function addNewItem({
   newMessages,

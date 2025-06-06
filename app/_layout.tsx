@@ -1,15 +1,13 @@
-import ErrorBoundary from "@/components/ErrorBoundary";
 import { refreshAccessToken, refreshAllToken } from "@/lib/refreshToken";
 import { setLoginStatus } from "@/lib/setLoginStatus";
 import { useAuthStore } from "@/store/authStore";
 import { useUserStore } from "@/store/userStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
-import { Redirect, SplashScreen, Stack } from "expo-router";
+import { router, SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { router } from "expo-router";
 
 console.log("root layout reached");
 
@@ -136,7 +134,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
+        {/* <Stack.Screen name="index" options={{ headerShown: false }} /> */}
         <Stack.Screen
           name="(main)"
           options={{
